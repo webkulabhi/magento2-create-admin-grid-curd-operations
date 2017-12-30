@@ -8,8 +8,9 @@ Magento2 module installation is very easy, please follow the steps for installat
 
 ## Install with Composer as you go
 Specify the version of the module you need, and go.
-
-    composer require webkulabhi/magento2-create-admin-grid-CURD-operations:2.0.0
+    
+    composer config repositories.reponame vcs https://github.com/webkulabhi/magento2-create-admin-grid-CURD-operations
+    composer require webkulabhi/magento2-create-admin-grid-CURD-operations:dev-master
     
 
 ## Run following command via terminal from magento root directory 
