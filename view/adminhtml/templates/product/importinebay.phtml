@@ -1,0 +1,95 @@
+<!--
+/**
+ * Ebaymagentoconnect import product template
+ * @category  Webkul
+ * @package   Webkul_MpEbaymagentoconnect
+ * @author    Webkul
+ * @copyright Copyright (c) 2010-2016 Webkul Software Private Limited (https://webkul.com)
+ * @license   https://store.webkul.com/license.html
+ */
+-->
+<?php
+	$productList= $block->getProductsListForImportIneBay();
+	$productCount = count($productList);
+?>
+<fieldset class="fieldset">
+	<div class="wk-mu-note wk-mu-box">
+		<?php echo __('Starting Execution'); ?>...
+	</div>
+	<div class="wk-mu-notice wk-mu-box">
+		<?php echo __("Please don't close or refresh the window while importing product(s)."); ?>
+	</div>
+	<div class="wk-mu-success wk-mu-box">
+		<?php echo __('Total '); ?><?php echo $productCount; ?><?php echo __(' product(s) to import'); ?>.
+	</div>
+	<?php if($productCount > 0): ?>
+		<div class="wk-mu-info-bar">
+			<?php __('Importing '); ?> <span class="wk-current">1</span> of <?php echo $productCount;?>
+			<img id="loader-image" src="<?php echo $block->getViewFileUrl('Webkul_MpEbaymagentoconnect::images/loader.gif') ?>" />
+		</div>
+		<div class="wk-mu-progress-bar">
+			<div class="wk-mu-progress-bar-current"></div>
+		</div>
+	<?php else: ?>
+		<div class="wk-mu-note wk-mu-box">
+			<?php echo __('No product to import.'); ?>
+		</div>
+		<div class="wk-mu-note wk-mu-box">
+			<?php echo __('Finsihed Execution.'); ?>
+		</div>
+	<?php endif; ?>
+</fieldset>
+<script type="text/javascript">
+	require(['jquery'], function ($) {
+		$(document).ready(function() {
+			var skipCount = 0;
+			var importUrl = "<?php echo $this->getUrl('mpebaymagentoconnect/products/createproductonebay'); ?>";
+			var productList = JSON.parse('<?php echo json_encode($productList) ?>');
+			var total = <?php echo $productCount; ?>;
+			if(total > 0) {
+				importProduct(1,productList[0]);
+			}
+			function importProduct(count,product)
+			{
+				count = count;
+				$.ajax({
+					type: 'get',
+					url:importUrl,
+					async: true,
+					dataType: 'json',
+					data : { count:count,product:product},
+					success:function(data) {
+						if(data['error'] == 1) {
+							$(".fieldset").append($('<div />')
+													.addClass('message message-error error')
+													.text(data['msg'])
+												);
+							skipCount++;
+						}
+						width = (100/total)*count;
+						$(".wk-mu-progress-bar-current").animate({width: width+"%"},'slow', function() {
+							if(count == total) {
+								finishImporting(count,productList[count-1], skipCount);
+							} else {
+								count++;
+								$(".wk-current").text(count);
+								importProduct(count,productList[count-1]);
+							}
+						});
+					}
+				});
+			}
+			function finishImporting(count,product,skipCount)
+			{	
+				var total = count-skipCount;
+				$(".fieldset").append($('<div />')
+								.addClass('wk-mu-success wk-mu-box')
+								.text('<?php echo __("Total ") ?>'+ total +'<?php echo __(" product(s) imported on eBay.") ?>'))
+							  .append($('<div />')
+					  				.addClass('wk-mu-note wk-mu-box')
+									.text('<?php echo __("Finished Execution") ?>'));
+				$(".wk-mu-info-bar").text("<?php echo __('Completed') ?>");
+			}
+		});
+	});
+</script>

@@ -1,0 +1,97 @@
+<!--
+/**
+ * Ebaymagentoconnect import order template
+ *
+ * @category    Webkul
+ * @package     Webkul_Ebaymagentoconnect
+ * @author      Webkul Software Private Limited
+ *
+ */
+-->
+<?php
+	$orderCount = $block->getImportedOrder();
+?>
+<fieldset class="fieldset">
+	<div class="wk-mu-note wk-mu-box">
+		<?php echo __('Starting Execution'); ?>...
+	</div>
+	<div class="wk-mu-notice wk-mu-box">
+		<?php echo __("Please don't close or refresh the window while importing order(s)."); ?>
+	</div>
+	<div class="wk-mu-success wk-mu-box">
+		<?php echo __('Total '); ?><?php echo $orderCount; ?><?php echo __(' order(s) to import'); ?>.
+	</div>
+	<?php if($orderCount > 0): ?>
+		<div class="wk-mu-info-bar">
+			<?php echo __('Importing '); ?> <span class="wk-current">1</span> of <?php echo $orderCount.__(' order(s)')?> 
+			<img id="loader-image" src="<?php echo $block->getViewFileUrl('Webkul_Ebaymagentoconnect::images/loader.gif') ?>" />
+		</div>
+		<div class="wk-mu-progress-bar">
+			<div class="wk-mu-progress-bar-current"></div>
+		</div>
+	<?php else: ?>
+		<div class="wk-mu-note wk-mu-box">
+			<?php echo __('No order to import.'); ?>
+		</div>
+		<div class="wk-mu-note wk-mu-box">
+			<?php echo __('Finsihed Execution.'); ?>
+		</div>
+	<?php endif; ?>
+</fieldset>
+<script type="text/javascript">
+	require(['jquery'], function ($) {
+		$(document).ready(function() {
+			var skipCount = 0;
+			var importUrl = "<?php echo $this->getUrl('ebaymagentoconnect/ebayorder/createorder'); ?>";
+			var total = <?php echo $orderCount; ?>;
+			
+			if(total > 0) {
+				importOrder(1);
+			}
+			function importOrder(count)
+			{
+				count = count;
+				$.ajax({
+					type: 'get',
+					url:importUrl,
+					async: true,
+					dataType: 'json',
+					data : { count:count },
+					success:function(data) {
+						if(data['error'] == 1) {
+							$(".fieldset").append($('<div />')
+													.addClass('message message-error error')
+													.text(data['msg'])
+												);
+							skipCount++;
+						}
+						width = (100/total)*count;
+						$(".wk-mu-progress-bar-current").animate({width: width+"%"},'slow', function() {
+							if(count == total) {
+								finishImporting(count, skipCount);
+								$(".wk-mu-info-bar").text("<?php echo __('Completed') ?>");
+							} else {
+								count++;
+								$(".wk-current").text(count);
+								importOrder(count);
+							}
+						});
+					}
+				});
+			}
+			function finishImporting(count, skipCount)
+			{
+				$.ajax({
+					type: 'get',
+					url:importUrl,
+					async: true,
+					dataType: 'json',
+					data : {count:count,skip:skipCount },
+					success:function(data) {
+						$(".fieldset").append(data['msg']);
+					}
+				});
+			}
+		});
+	});
+</script>

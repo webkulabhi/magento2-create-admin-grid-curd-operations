@@ -1,0 +1,144 @@
+<!--
+/**
+ * MpEbaymagentoconnect import product in ebay template
+ * @category  Webkul
+ * @package   Webkul_MpEbaymagentoconnect
+ * @author    Webkul
+ * @copyright Copyright (c) 2010-2016 Webkul Software Private Limited (https://webkul.com)
+ * @license   https://store.webkul.com/license.html
+ */
+-->
+<script>
+	 require([
+                'jquery',
+                'mage/mage',
+                'knockout'
+            ], function ($){
+            		var src= '<?php echo $block->getViewFileUrl("Webkul_MpEbaymagentoconnect::images/loader.gif")?>';
+            		var loader=$('<img />',{'src':src,'class':'loader','style':'margin-left:5px;'});
+	                $('#edit_form').on('change','.mage_category',function(){
+	                	var cat_id=$(this).val();
+	                	if(cat_id==""){
+	                		alert("<?php echo __('please select category')?>");
+	                		return false;
+	                	}
+	                	var subcat=$(this);
+	                	subcat.after(loader.clone());
+	                	subcat.nextAll('.mage_category').remove();
+	                	if($('.mage_category').length>1){
+	                		subcat.attr('style','margin-top: 10px;min-width:300px;');
+	               		}
+	                	
+	                    $.ajax({
+	                        url: "<?php echo $block->getUrl('*/*/getmagechildcategory')?>",
+	                        data: {form_key: window.FORM_KEY,cat_id:cat_id},
+	                        type: 'POST',
+	                        dataType:'JSON',
+	                        success: function(magecat){
+	                			if(magecat.totalRecords){
+	                        		var select=$('<select/>',{'class':'required-entry mage_category _required select admin__control-select','style':'margin-top: 10px;min-width:300px;','id':'mage_category_'+$('.mage_category').length})
+	                        						.append($('<option />')
+	                        							.val('')
+	                        							.text("<?php echo __('Select Sub Category')?>")
+	                    							);
+	                            	$(magecat.items).each(function(i,cat){
+	                            		select.append($('<option />').val(cat.value).text(cat.lable));
+	                            	});
+	                            	$('.mage_category:last').next().after(select);
+	                        	}else{
+	                        		subcat.attr('style',subcat.attr('style')+'border-color:green;')
+	                        			  .attr('name','leaf_mage_category');
+	                        	}
+	                        	subcat.next('img').remove();
+	                        },
+	                        error: function(error){
+	                        	$('<div />').html(error)
+		                            .modal({
+		                                title: $.mage.__('Attention'),
+		                                autoOpen: true,
+		                                buttons: [{
+		                                 text: 'OK',
+		                                    attr: {
+		                                        'data-action': 'cancel'
+		                                    },
+		                                    'class': 'action-primary',
+		                                    click: function() {
+		                                            this.closeModal();
+		                                        }
+		                                }]
+		                            });
+	                        }
+	                    });
+                    });
+
+                    $('#edit_form').on('change','.ebay_category',function(){
+                    	var cat_id=$(this).val();
+                    	if(cat_id==""){
+                			$('<div />').html("<?php echo __('please select category')?>")
+	                            .modal({
+	                                title: $.mage.__('Attention'),
+	                                autoOpen: true,
+	                                buttons: [{
+	                                 text: 'OK',
+	                                    attr: {
+	                                        'data-action': 'cancel'
+	                                    },
+	                                    'class': 'action-primary',
+	                                    click: function() {
+	                                            this.closeModal();
+	                                        }
+	                                }]
+	                            });
+                    		return false;
+                    	}
+                    	var subcat=$(this);
+                    	subcat.after(loader);
+                    	subcat.nextAll('.ebay_category').remove();
+                    	if($('.ebay_category').length>1){
+                    		subcat.attr('style','margin-top: 10px;min-width:250px;')
+                    	}
+                    	
+                        $.ajax({
+                            url: "<?php echo $block->getUrl('*/*/getebaychildcategory')?>",
+                            data: {form_key: window.FORM_KEY,cat_id:cat_id},
+                            type: 'POST',
+                            dataType:'JSON',
+                            success: function(ebayCat){
+                            	if(ebayCat.totalRecords){
+	                        		var select=$('<select/>',{'class':'required-entry ebay_category _required select admin__control-select','style':'margin-top:10px; min-width: 250px;','id':'ebay_category_'+$('.ebay_category').length})
+	                        						.append($('<option />')
+	                        							.val('')
+	                        							.text("<?php echo __('Select Sub Category')?>")
+	                    							);
+	                            	$(ebayCat.items).each(function(i,cat){
+	                            		select.append($('<option />').val(cat.ebay_cat_id).text(cat.ebay_cat_name));
+	                            	});
+	                            	$('.ebay_category:last').next().after(select);
+	                        	}else{
+	                        		subcat.attr('style',subcat.attr('style')+'border-color:green;')
+	                        			  .attr('name','leaf_ebay_category');
+	                        	}
+	                        	subcat.next('img').remove();
+                            },
+                            error:function(error){
+                            	$('<div />').html(error)
+		                            .modal({
+		                                title: $.mage.__('Attention'),
+		                                autoOpen: true,
+		                                buttons: [{
+		                                 text: 'OK',
+		                                    attr: {
+		                                        'data-action': 'cancel'
+		                                    },
+		                                    'class': 'action-primary',
+		                                    click: function() {
+		                                            this.closeModal();
+		                                        }
+		                                }]
+		                            });
+		                        subcat.next('img').remove();      
+                            }
+                        });
+                    });     
+                });
+</script>
